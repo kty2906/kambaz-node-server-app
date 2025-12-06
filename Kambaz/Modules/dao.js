@@ -1,30 +1,46 @@
-import Database from "../Database/index.js";
 import { v4 as uuidv4 } from "uuid";
+import courseModel from "../Courses/model.js";
 
-export function findModulesForCourse(courseId) {
-  const { modules } = Database;
-  return modules.filter((module) => module.course === courseId);
-}
+export default function ModulesDao(db) {
+  
+  const findModulesForCourse = async (courseId) => {
+    const course = await courseModel.findById(courseId);
+    if (!course) return [];
+    return course.modules || [];
+  };
 
-export function createModule(module) {
-  const newModule = { ...module, _id: uuidv4() };
-  Database.modules = [...Database.modules, newModule];
-  return newModule;
-}
+  
+  const createModule = async (courseId, module) => {
+    const newModule = { ...module, _id: uuidv4() };
+    await courseModel.updateOne(
+      { _id: courseId },
+      { $push: { modules: newModule } }
+    );
+    return newModule;
+  };
 
-export function deleteModule(moduleId) {
-  const { modules } = Database;
-  Database.modules = modules.filter((module) => module._id !== moduleId);
-}
+ 
+  const deleteModule = async (courseId, moduleId) => {
+    const status = await courseModel.updateOne(
+      { _id: courseId },
+      { $pull: { modules: { _id: moduleId } } }
+    );
+    return status;
+  };
 
-export function updateModule(moduleId, moduleUpdates) {
-  const { modules } = Database;
-  const module = modules.find((module) => module._id === moduleId);
-  Object.assign(module, moduleUpdates);
-  return module;
-}
+ 
+  const updateModule = async (courseId, moduleId, moduleUpdates) => {
+    const course = await courseModel.findById(courseId);
+    const module = course.modules.id(moduleId);
+    Object.assign(module, moduleUpdates);
+    await course.save();
+    return module;
+  };
 
-export function findModuleById(moduleId) {
-  const { modules } = Database;
-  return modules.find((module) => module._id === moduleId);
+  return {
+    findModulesForCourse,
+    createModule,
+    deleteModule,
+    updateModule,
+  };
 }

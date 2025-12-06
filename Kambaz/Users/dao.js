@@ -1,29 +1,50 @@
-import db from "../Database/index.js";
+import model from "./model.js";
 import { v4 as uuidv4 } from "uuid";
 
-let { users } = db;
+export default function UsersDao(db) {
+  const createUser = (user) => {
+    const newUser = { ...user, _id: uuidv4() };
+    return model.create(newUser);
+  };
 
-export const createUser = (user) => {
-  const newUser = { ...user, _id: uuidv4() };
-  users = [...users, newUser];
-  return newUser;
-};
+  const findAllUsers = () => model.find();
+  
+  const findUserById = (userId) => model.findById(userId);
+  
+  const findUserByUsername = (username) => 
+    model.findOne({ username: username });
+  
+  const findUserByCredentials = (username, password) => 
+    model.findOne({ username, password });
+  
+  const updateUser = (userId, user) => 
+    model.updateOne({ _id: userId }, { $set: user });
+  
+  const deleteUser = (userId) => 
+    model.deleteOne({ _id: userId });
 
-export const findAllUsers = () => users;
+  const findUsersByRole = (role) => 
+    model.find({ role: role });
 
-export const findUserById = (userId) => users.find((user) => user._id === userId);
+  const findUsersByPartialName = (partialName) => {
+    const regex = new RegExp(partialName, "i");
+    return model.find({
+      $or: [
+        { firstName: { $regex: regex } },
+        { lastName: { $regex: regex } }
+      ],
+    });
+  };
 
-export const findUserByUsername = (username) => 
-  users.find((user) => user.username === username);
-
-export const findUserByCredentials = (username, password) =>
-  users.find((user) => user.username === username && user.password === password);
-
-export const updateUser = (userId, user) => {
-  users = users.map((u) => (u._id === userId ? user : u));
-  return user;
-};
-
-export const deleteUser = (userId) => {
-  users = users.filter((u) => u._id !== userId);
-};
+  return {
+    createUser,
+    findAllUsers,
+    findUserById,
+    findUserByUsername,
+    findUserByCredentials,
+    updateUser,
+    deleteUser,
+    findUsersByRole,
+    findUsersByPartialName,
+  };
+}
