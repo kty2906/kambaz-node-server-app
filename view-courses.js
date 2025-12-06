@@ -1,4 +1,4 @@
-// Quick script to view courses in MongoDB
+
 import mongoose from "mongoose";
 import CourseModel from "./Kambaz/Courses/model.js";
 
