@@ -25,14 +25,23 @@ const sessionOptions = {
   secret: process.env.SESSION_SECRET || "super secret session phrase",
   resave: false,
   saveUninitialized: false,
+  name: "kambaz.sid", 
 };
 
-if (process.env.SERVER_ENV === "production") {
+if (process.env.SERVER_ENV === "production" || process.env.NODE_ENV === "production") {
   sessionOptions.proxy = true;
   sessionOptions.cookie = {
     sameSite: "none",
     secure: true,
-    domain: process.env.SERVER_URL,
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, 
+   
+  };
+} else {
+ 
+  sessionOptions.cookie = {
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, 
   };
 }
 
@@ -41,7 +50,7 @@ app.use(express.json());
 
 let db = {};
 
-// ADD ALL THESE ROUTES
+
 UserRoutes(app, db);
 CoursesRoutes(app, db);
 ModulesRoutes(app, db);
