@@ -50,7 +50,10 @@ export default function QuizzesRoutes(app, db) {
       console.log("[Quizzes] Creating quiz with data:", JSON.stringify(cleanedData, null, 2));
       const quiz = await quizDao.createQuiz(cleanedData);
       console.log("[Quizzes] Created new quiz:", quiz._id);
-      res.status(201).json(quiz);
+      // Convert Mongoose document to plain object
+      const quizObj = quiz.toObject ? quiz.toObject() : quiz;
+      console.log("[Quizzes] Sending quiz response:", quizObj._id);
+      res.status(201).json(quizObj);
     } catch (error) {
       console.error("[Quizzes] Error creating quiz:", error);
       console.error("[Quizzes] Error stack:", error.stack);
