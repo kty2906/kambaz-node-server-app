@@ -10,6 +10,16 @@ export default function ModulesRoutes(app, db) {
   };
 
   const createModuleForCourse = async (req, res) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+    
+    if (currentUser.role !== "FACULTY" && currentUser.role !== "ADMIN") {
+      res.status(403).json({ message: "Only faculty and admin can create modules" });
+      return;
+    }
     const { courseId } = req.params;
     const module = req.body;
     const newModule = await dao.createModule(courseId, module);
@@ -17,12 +27,32 @@ export default function ModulesRoutes(app, db) {
   };
 
   const deleteModule = async (req, res) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+   
+    if (currentUser.role !== "FACULTY" && currentUser.role !== "ADMIN") {
+      res.status(403).json({ message: "Only faculty and admin can delete modules" });
+      return;
+    }
     const { courseId, moduleId } = req.params;
     const status = await dao.deleteModule(courseId, moduleId);
     res.send(status);
   };
 
   const updateModule = async (req, res) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+    
+    if (currentUser.role !== "FACULTY" && currentUser.role !== "ADMIN") {
+      res.status(403).json({ message: "Only faculty and admin can update modules" });
+      return;
+    }
     const { courseId, moduleId } = req.params;
     const moduleUpdates = req.body;
     const status = await dao.updateModule(courseId, moduleId, moduleUpdates);

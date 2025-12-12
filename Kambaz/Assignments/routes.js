@@ -10,6 +10,16 @@ export default function AssignmentsRoutes(app, db) {
   };
 
   const createAssignment = async (req, res) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+   
+    if (currentUser.role !== "FACULTY" && currentUser.role !== "ADMIN") {
+      res.status(403).json({ message: "Only faculty and admin can create assignments" });
+      return;
+    }
     const { courseId } = req.params;
     const assignment = req.body;
     const newAssignment = await dao.createAssignment(courseId, assignment);
@@ -17,12 +27,32 @@ export default function AssignmentsRoutes(app, db) {
   };
 
   const deleteAssignment = async (req, res) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+   
+    if (currentUser.role !== "FACULTY" && currentUser.role !== "ADMIN") {
+      res.status(403).json({ message: "Only faculty and admin can delete assignments" });
+      return;
+    }
     const { assignmentId } = req.params;
     const status = await dao.deleteAssignment(assignmentId);
     res.send(status);
   };
 
   const updateAssignment = async (req, res) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+    
+    if (currentUser.role !== "FACULTY" && currentUser.role !== "ADMIN") {
+      res.status(403).json({ message: "Only faculty and admin can update assignments" });
+      return;
+    }
     const { assignmentId } = req.params;
     const assignmentUpdates = req.body;
     const status = await dao.updateAssignment(assignmentId, assignmentUpdates);
