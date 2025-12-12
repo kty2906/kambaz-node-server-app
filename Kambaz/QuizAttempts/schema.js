@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const quizAttemptSchema = new mongoose.Schema(
   {
+    _id: {                   
+      type: String,
+      required: true
+    },
     quiz: { 
       type: String, 
       required: true 
@@ -53,7 +57,8 @@ const quizAttemptSchema = new mongoose.Schema(
   },
   { 
     collection: "quizAttempts", 
-    timestamps: true 
+    timestamps: true,
+    _id: false  
   }
 );
 

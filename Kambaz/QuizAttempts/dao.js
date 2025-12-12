@@ -1,28 +1,27 @@
 import QuizAttemptModel from "./model.js";
+import { v4 as uuidv4 } from "uuid"; // Add this import!
 
-
+// Create a new quiz attempt
 export const createQuizAttempt = (attempt) => {
-  return QuizAttemptModel.create(attempt);
+  const newAttempt = {
+    ...attempt,
+    _id: uuidv4()  
+  };
+  return QuizAttemptModel.create(newAttempt);
 };
 
-
+// Find all attempts by a specific user for a specific quiz
 export const findAttemptsByUserAndQuiz = (userId, quizId) => {
   return QuizAttemptModel.find({ 
     user: userId, 
     quiz: quizId 
-  })
-  .sort({ attemptNumber: -1 })
-  .populate('quiz', 'title points') 
-  .populate('user', 'firstName lastName username'); 
+  }).sort({ attemptNumber: -1 });
 };
 
 
 export const findAttemptById = (attemptId) => {
-  return QuizAttemptModel.findById(attemptId)
-    .populate('quiz')
-    .populate('user', 'firstName lastName username');
+  return QuizAttemptModel.findById(attemptId);
 };
-
 
 export const updateQuizAttempt = (attemptId, attemptData) => {
   return QuizAttemptModel.findByIdAndUpdate(
@@ -37,23 +36,18 @@ export const getLatestAttempt = (userId, quizId) => {
   return QuizAttemptModel.findOne({ 
     user: userId, 
     quiz: quizId 
-  })
-  .sort({ attemptNumber: -1 })
-  .populate('quiz', 'title points showCorrectAnswers');
+  }).sort({ attemptNumber: -1 });
 };
 
 
 export const findAttemptsByQuiz = (quizId) => {
   return QuizAttemptModel.find({ quiz: quizId })
-    .populate('user', 'firstName lastName username')
     .sort({ submittedAt: -1 });
 };
 
 
 export const findAttemptsByUser = (userId) => {
   return QuizAttemptModel.find({ user: userId })
-    .populate('quiz', 'title course')
-    .populate('course', 'name number')
     .sort({ submittedAt: -1 });
 };
 
@@ -89,21 +83,18 @@ export const getHighestScore = async (userId, quizId) => {
 
 
 export const getAverageScoreForQuiz = async (quizId) => {
-  const result = await QuizAttemptModel.aggregate([
-    { 
-      $match: { 
-        quiz: mongoose.Types.ObjectId(quizId),
-        completed: true 
-      } 
-    },
-    { 
-      $group: { 
-        _id: null, 
-        avgScore: { $avg: "$score" },
-        count: { $sum: 1 }
-      } 
-    }
-  ]);
+  const attempts = await QuizAttemptModel.find({
+    quiz: quizId,
+    completed: true
+  });
   
-  return result.length > 0 ? result[0] : { avgScore: 0, count: 0 };
+  if (attempts.length === 0) {
+    return { avgScore: 0, count: 0 };
+  }
+  
+  const totalScore = attempts.reduce((sum, attempt) => sum + attempt.score, 0);
+  return {
+    avgScore: totalScore / attempts.length,
+    count: attempts.length
+  };
 };
